@@ -26,13 +26,12 @@ import SafeAreaView from '../../containers/SafeAreaView';
 import { goRoom } from '../../utils/goRoom';
 
 class DirectoryView extends React.Component {
-	static navigationOptions = ({ navigation, isMasterDetail }) => {
+	static navigationOptions = ({ navigation }) => {
 		const options = {
-			title: I18n.t('Directory')
+			title: I18n.t('Channels')
 		};
-		if (isMasterDetail) {
-			options.headerLeft = () => <HeaderButton.CloseModal navigation={navigation} testID='directory-view-close' />;
-		}
+		options.headerLeft = () => <HeaderButton.Setting onPress={() => navigation.navigate('SettingsStackNavigator')} />
+		options.headerRight = () => <HeaderButton.Plus onPress={() => navigation.navigate('NewMessageStackNavigator', { screen: 'SelectedUsersViewCreateChannel', params: { nextAction: () => navigation.navigate('CreateChannelView') } })} />
 		return options;
 	}
 
@@ -58,7 +57,7 @@ class DirectoryView extends React.Component {
 			total: -1,
 			showOptionsDropdown: false,
 			globalUsers: true,
-			type: props.directoryDefaultView
+			type: 'channels'
 		};
 	}
 
@@ -71,7 +70,7 @@ class DirectoryView extends React.Component {
 	}
 
 	// eslint-disable-next-line react/sort-comp
-	load = debounce(async({ newSearch = false }) => {
+	load = debounce(async ({ newSearch = false }) => {
 		if (newSearch) {
 			this.setState({ data: [], total: -1, loading: false });
 		}
@@ -133,15 +132,15 @@ class DirectoryView extends React.Component {
 
 	goRoom = (item) => {
 		const { navigation, isMasterDetail } = this.props;
-		if (isMasterDetail) {
-			navigation.navigate('DrawerNavigator');
-		} else {
-			navigation.navigate('RoomsListView');
-		}
+		// if (isMasterDetail) {
+		// 	navigation.navigate('DrawerNavigator');
+		// } else {
+		// 	navigation.navigate('RoomsListView');
+		// }
 		goRoom({ item, isMasterDetail });
 	}
 
-	onPressItem = async(item) => {
+	onPressItem = async (item) => {
 		const { type } = this.state;
 		if (type === 'users') {
 			const result = await RocketChat.createDirectMessage(item.username);
@@ -166,7 +165,7 @@ class DirectoryView extends React.Component {
 					onSubmitEditing={this.search}
 					testID='federation-view-search'
 				/>
-				<Touch
+				{/* <Touch
 					onPress={this.toggleDropdown}
 					style={styles.dropdownItemButton}
 					testID='federation-view-create-channel'
@@ -177,7 +176,7 @@ class DirectoryView extends React.Component {
 						<Text style={[styles.toggleDropdownText, { color: themes[theme].tintColor }]}>{type === 'users' ? I18n.t('Users') : I18n.t('Channels')}</Text>
 						<CustomIcon name='chevron-down' size={20} style={[styles.toggleDropdownArrow, { color: themes[theme].auxiliaryTintColor }]} />
 					</View>
-				</Touch>
+				</Touch> */}
 			</>
 		);
 	}
@@ -203,7 +202,7 @@ class DirectoryView extends React.Component {
 			title: item.name,
 			onPress: () => this.onPressItem(item),
 			baseUrl,
-			testID: `federation-view-item-${ item.name }`,
+			testID: `federation-view-item-${item.name}`,
 			style,
 			user,
 			theme,

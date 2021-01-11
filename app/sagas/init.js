@@ -2,7 +2,7 @@ import { put, takeLatest, all } from 'redux-saga/effects';
 import RNBootSplash from 'react-native-bootsplash';
 
 import UserPreferences from '../lib/userPreferences';
-import { selectServerRequest } from '../actions/server';
+import { selectServerRequest, serverRequest } from '../actions/server';
 import { setAllPreferences } from '../actions/sortPreferences';
 import { toggleCrashReport, toggleAnalyticsEvents } from '../actions/crashReport';
 import { APP } from '../actions/actionsTypes';
@@ -11,6 +11,7 @@ import log from '../utils/log';
 import database from '../lib/database';
 import { localAuthenticate } from '../utils/localAuthentication';
 import { appStart, ROOT_OUTSIDE, appReady } from '../actions/app';
+import { SERVER } from '../constants';
 
 export const initLocalSettings = function* initLocalSettings() {
 	const sortPreferences = yield RocketChat.getSortPreferences();
@@ -36,6 +37,7 @@ const restore = function* restore() {
 				UserPreferences.removeItem(RocketChat.CURRENT_SERVER)
 			]);
 			yield put(appStart({ root: ROOT_OUTSIDE }));
+			yield put(serverRequest(SERVER))
 		} else {
 			const serversDB = database.servers;
 			const serverCollections = serversDB.collections.get('servers');
@@ -49,11 +51,10 @@ const restore = function* restore() {
 			}
 			yield put(selectServerRequest(server, serverObj && serverObj.version));
 		}
-
 		yield put(appReady({}));
 	} catch (e) {
 		log(e);
-		yield put(appStart({ root: ROOT_OUTSIDE }));
+		// yield put(appStart({ root: ROOT_OUTSIDE }));
 	}
 };
 

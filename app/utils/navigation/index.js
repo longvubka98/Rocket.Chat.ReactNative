@@ -27,7 +27,7 @@ export const themedHeader = theme => ({
 		...borderBottom(theme),
 		backgroundColor: themes[theme].headerBackground
 	},
-	headerTintColor: themes[theme].headerTintColor,
+	headerTintColor: themes[theme].tintColor,
 	headerTitleStyle: { color: themes[theme].headerTitleColor }
 });
 

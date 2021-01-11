@@ -128,5 +128,22 @@ export default StyleSheet.create({
 	notchLandscapeContainer: {
 		marginTop: -34,
 		paddingHorizontal: 30
-	}
+	},
+	wrapViewTextInput: {
+		height: 50,
+		marginTop: 50,
+		alignItems: "center",
+		paddingHorizontal: 15,
+		flexDirection: "row"
+	},
+	textNotice: {
+		paddingTop: 15,
+		paddingHorizontal: 15,
+		textAlign: "justify"
+	},
+	textHeader: {
+		marginHorizontal: 15,
+		fontSize: 16,
+		fontWeight: 'bold'
+	},
 });

@@ -13,6 +13,12 @@ export const Drawer = React.memo(({ navigation, testID, ...props }) => (
 	</Container>
 ));
 
+export const Setting = React.memo(({ onPress, testID, ...props }) => (
+	<Container left>
+		<Item iconName='administration' onPress={onPress} testID={testID} {...props} />
+	</Container>
+));
+
 export const CloseModal = React.memo(({
 	navigation, testID, onPress = () => navigation.pop(), ...props
 }) => (
@@ -46,6 +52,12 @@ export const Download = React.memo(({ onPress, testID, ...props }) => (
 export const Preferences = React.memo(({ onPress, testID, ...props }) => (
 	<Container>
 		<Item iconName='settings' onPress={onPress} testID={testID} {...props} />
+	</Container>
+));
+
+export const Plus = React.memo(({ onPress, testID }) => (
+	<Container>
+		<Item iconName='add' onPress={onPress} testID={testID} />
 	</Container>
 ));
 

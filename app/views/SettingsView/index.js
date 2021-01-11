@@ -25,7 +25,6 @@ import {
 	PLAY_MARKET_LINK, FDROID_MARKET_LINK, APP_STORE_LINK, LICENSE_LINK
 } from '../../constants/links';
 import { withTheme } from '../../theme';
-import SidebarView from '../SidebarView';
 import { LISTENER } from '../../containers/Toast';
 import EventEmitter from '../../utils/events';
 import { appStart as appStartAction, ROOT_LOADING } from '../../actions/app';
@@ -34,14 +33,11 @@ import SafeAreaView from '../../containers/SafeAreaView';
 import database from '../../lib/database';
 import { isFDroidBuild } from '../../constants/environment';
 import { getUserSelector } from '../../selectors/login';
+import SidebarSettingView from '../SidebarSettingView';
 
 class SettingsView extends React.Component {
 	static navigationOptions = ({ navigation, isMasterDetail }) => ({
-		headerLeft: () => (isMasterDetail ? (
-			<HeaderButton.CloseModal navigation={navigation} testID='settings-view-close' />
-		) : (
-			<HeaderButton.Drawer navigation={navigation} testID='settings-view-drawer' />
-		)),
+		headerLeft: () => <HeaderButton.CloseModal onPress={() => navigation.goBack()} />,
 		title: I18n.t('Settings')
 	});
 
@@ -59,7 +55,7 @@ class SettingsView extends React.Component {
 		appStart: PropTypes.func
 	}
 
-	checkCookiesAndLogout = async() => {
+	checkCookiesAndLogout = async () => {
 		const { logout, user } = this.props;
 		const db = database.servers;
 		const usersCollection = db.collections.get('users');
@@ -71,7 +67,7 @@ class SettingsView extends React.Component {
 					message: I18n.t('Clear_cookies_desc'),
 					confirmationText: I18n.t('Clear_cookies_yes'),
 					dismissText: I18n.t('Clear_cookies_no'),
-					onPress: async() => {
+					onPress: async () => {
 						await CookieManager.clearAll(true);
 						logout();
 					},
@@ -89,10 +85,11 @@ class SettingsView extends React.Component {
 
 	handleLogout = () => {
 		logEvent(events.SE_LOG_OUT);
+		const { logout } = this.props;
 		showConfirmationAlert({
 			message: I18n.t('You_will_be_logged_out_of_this_application'),
 			confirmationText: I18n.t('Logout'),
-			onPress: this.checkCookiesAndLogout
+			onPress: () => logout()
 		});
 	}
 
@@ -101,7 +98,7 @@ class SettingsView extends React.Component {
 		showConfirmationAlert({
 			message: I18n.t('This_will_clear_all_your_offline_data'),
 			confirmationText: I18n.t('Clear'),
-			onPress: async() => {
+			onPress: async () => {
 				const {
 					server: { server }, appStart, selectServerRequest
 				} = this.props;
@@ -115,21 +112,21 @@ class SettingsView extends React.Component {
 	}
 
 	navigateToScreen = (screen) => {
-		logEvent(events[`SE_GO_${ screen.replace('View', '').toUpperCase() }`]);
+		logEvent(events[`SE_GO_${screen.replace('View', '').toUpperCase()}`]);
 		const { navigation } = this.props;
 		navigation.navigate(screen);
 	}
 
-	sendEmail = async() => {
+	sendEmail = async () => {
 		logEvent(events.SE_CONTACT_US);
 		const subject = encodeURI('React Native App Support');
 		const email = encodeURI('support@rocket.chat');
 		const description = encodeURI(`
-			version: ${ getReadableVersion }
-			device: ${ getDeviceModel }
+			version: ${getReadableVersion}
+			device: ${getDeviceModel}
 		`);
 		try {
-			await Linking.openURL(`mailto:${ email }?subject=${ subject }&body=${ description }`);
+			await Linking.openURL(`mailto:${email}?subject=${subject}&body=${description}`);
 		} catch (e) {
 			logEvent(events.SE_CONTACT_US_F);
 			showErrorAlert(I18n.t('error-email-send-failed', { message: 'support@rocket.chat' }));
@@ -160,7 +157,7 @@ class SettingsView extends React.Component {
 		this.saveToClipboard(getReadableVersion);
 	}
 
-	saveToClipboard = async(content) => {
+	saveToClipboard = async (content) => {
 		await Clipboard.setString(content);
 		EventEmitter.emit(LISTENER, { message: I18n.t('Copied_to_clipboard') });
 	}
@@ -172,96 +169,52 @@ class SettingsView extends React.Component {
 	}
 
 	render() {
-		const { server, isMasterDetail, theme } = this.props;
+		const { navigation, theme } = this.props;
 		return (
 			<SafeAreaView testID='settings-view'>
 				<StatusBar />
 				<List.Container testID='settings-view-list'>
-					{isMasterDetail ? (
-						<>
-							<List.Section>
-								<List.Separator />
-								<SidebarView />
-								<List.Separator />
-							</List.Section>
-							<List.Section>
-								<List.Separator />
-								<List.Item
-									title='Profile'
-									onPress={() => this.navigateToScreen('ProfileView')}
-									showActionIndicator
-									testID='settings-profile'
-								/>
-								<List.Separator />
-							</List.Section>
-						</>
-					) : null}
+					<List.Section>
+						<SidebarSettingView onPress={() => navigation.navigate('ProfileStackNavigator')} />
+					</List.Section>
 
 					<List.Section>
 						<List.Separator />
-						<List.Item
-							title='Contact_us'
-							onPress={this.sendEmail}
-							showActionIndicator
-							testID='settings-view-contact'
-						/>
-						<List.Separator />
-						<List.Item
-							title='Language'
-							onPress={() => this.navigateToScreen('LanguageView')}
-							showActionIndicator
-							testID='settings-view-language'
-						/>
-						<List.Separator />
-						{!isFDroidBuild ? (
-							<>
-								<List.Item
-									title='Review_this_app'
-									showActionIndicator
-									onPress={onReviewPress}
-									testID='settings-view-review-app'
-								/>
-							</>
-						) : null}
-						<List.Separator />
-						<List.Item
-							title='Share_this_app'
-							showActionIndicator
-							onPress={this.shareApp}
-							testID='settings-view-share-app'
-						/>
-						<List.Separator />
+						{/* <List.Separator /> */}
 						<List.Item
 							title='Default_browser'
 							showActionIndicator
 							onPress={() => this.navigateToScreen('DefaultBrowserView')}
 							testID='settings-view-default-browser'
 						/>
-						<List.Separator />
+						{/* <List.Separator /> */}
 						<List.Item
 							title='Theme'
 							showActionIndicator
 							onPress={() => this.navigateToScreen('ThemeView')}
 							testID='settings-view-theme'
 						/>
-						<List.Separator />
+						{/* <List.Separator /> */}
 						<List.Item
 							title='Security_and_privacy'
 							showActionIndicator
 							onPress={() => this.navigateToScreen('SecurityPrivacyView')}
 							testID='settings-view-security-privacy'
 						/>
+						<List.Item
+							title='Privacy_Policy'
+							showActionIndicator
+							onPress={() => { this.navigateToScreen('PolicyView') }}
+						/>
+						<List.Item
+							title='Terms_of_Service'
+							showActionIndicator
+							onPress={() => { this.navigateToScreen('TermsOfServiceView') }}
+						/>
 						<List.Separator />
 					</List.Section>
 
 					<List.Section>
-						<List.Separator />
-						<List.Item
-							title='License'
-							onPress={this.onPressLicense}
-							showActionIndicator
-							testID='settings-view-license'
-						/>
 						<List.Separator />
 						<List.Item
 							title={I18n.t('Version_no', { version: getReadableVersion })}
@@ -270,26 +223,9 @@ class SettingsView extends React.Component {
 							translateTitle={false}
 						/>
 						<List.Separator />
-						<List.Item
-							title={I18n.t('Server_version', { version: server.version })}
-							onPress={this.copyServerVersion}
-							subtitle={`${ server.server.split('//')[1] }`}
-							testID='settings-view-server-version'
-							translateTitle={false}
-							translateSubtitle={false}
-						/>
-						<List.Separator />
 					</List.Section>
 
 					<List.Section>
-						<List.Separator />
-						<List.Item
-							title='Clear_cache'
-							testID='settings-clear-cache'
-							onPress={this.handleClearCache}
-							showActionIndicator
-							color={themes[theme].dangerColor}
-						/>
 						<List.Separator />
 						<List.Item
 							title='Logout'

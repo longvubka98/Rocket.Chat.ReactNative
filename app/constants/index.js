@@ -1,0 +1,1 @@
+export const SERVER = 'https://fwork.ftech.ai'
