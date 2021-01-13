@@ -46,7 +46,7 @@ const getServerInfo = function* getServerInfo({ server, raiseError = true }) {
 
 		const serversDB = database.servers;
 		const serversCollection = serversDB.collections.get('servers');
-		yield serversDB.action(async() => {
+		yield serversDB.action(async () => {
 			try {
 				const serverRecord = await serversCollection.find(server);
 				await serverRecord.update((record) => {
@@ -69,14 +69,14 @@ const getServerInfo = function* getServerInfo({ server, raiseError = true }) {
 const handleSelectServer = function* handleSelectServer({ server, version, fetchVersion }) {
 	try {
 		// SSL Pinning - Read certificate alias and set it to be used by network requests
-		const certificate = yield UserPreferences.getStringAsync(`${ RocketChat.CERTIFICATE_KEY }-${ server }`);
+		const certificate = yield UserPreferences.getStringAsync(`${RocketChat.CERTIFICATE_KEY}-${server}`);
 		yield SSLPinning.setCertificate(certificate, server);
 
 		yield put(inquiryReset());
 		yield put(encryptionStop());
 		const serversDB = database.servers;
 		yield UserPreferences.setStringAsync(RocketChat.CURRENT_SERVER, server);
-		const userId = yield UserPreferences.getStringAsync(`${ RocketChat.TOKEN_KEY }-${ server }`);
+		const userId = yield UserPreferences.getStringAsync(`${RocketChat.TOKEN_KEY}-${server}`);
 		const userCollections = serversDB.collections.get('users');
 		let user = null;
 		if (userId) {
@@ -96,14 +96,14 @@ const handleSelectServer = function* handleSelectServer({ server, version, fetch
 				};
 			} catch {
 				// search credentials on shared credentials (Experimental/Official)
-				const token = yield UserPreferences.getStringAsync(`${ RocketChat.TOKEN_KEY }-${ userId }`);
+				const token = yield UserPreferences.getStringAsync(`${RocketChat.TOKEN_KEY}-${userId}`);
 				if (token) {
 					user = { token };
 				}
 			}
 		}
 
-		const basicAuth = yield UserPreferences.getStringAsync(`${ BASIC_AUTH_KEY }-${ server }`);
+		const basicAuth = yield UserPreferences.getStringAsync(`${BASIC_AUTH_KEY}-${server}`);
 		setBasicAuth(basicAuth);
 
 		// Check for running requests and abort them before connecting to the server
@@ -145,7 +145,7 @@ const handleSelectServer = function* handleSelectServer({ server, version, fetch
 const handleServerRequest = function* handleServerRequest({ server, username, fromServerHistory }) {
 	try {
 		// SSL Pinning - Read certificate alias and set it to be used by network requests
-		const certificate = yield UserPreferences.getStringAsync(`${ RocketChat.CERTIFICATE_KEY }-${ server }`);
+		const certificate = yield UserPreferences.getStringAsync(`${RocketChat.CERTIFICATE_KEY}-${server}`);
 		yield SSLPinning.setCertificate(certificate, server);
 
 		const serverInfo = yield getServerInfo({ server });
@@ -155,13 +155,13 @@ const handleServerRequest = function* handleServerRequest({ server, username, fr
 		if (serverInfo) {
 			yield RocketChat.getLoginServices(server);
 			yield RocketChat.getLoginSettings({ server });
-			Navigation.navigate('WorkspaceView');
+			// Navigation.navigate('WorkspaceView');
 
 			if (fromServerHistory) {
 				Navigation.navigate('LoginView', { username });
 			}
 
-			yield serversDB.action(async() => {
+			yield serversDB.action(async () => {
 				try {
 					const serversHistory = await serversHistoryCollection.query(Q.where('url', server)).fetch();
 					if (!serversHistory?.length) {

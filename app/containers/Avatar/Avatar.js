@@ -35,7 +35,7 @@ const Avatar = React.memo(({
 	const avatarStyle = {
 		width: size,
 		height: size,
-		borderRadius
+		borderRadius: size / 2
 	};
 
 	let image;

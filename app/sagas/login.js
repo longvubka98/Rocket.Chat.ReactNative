@@ -11,7 +11,7 @@ import * as types from '../actions/actionsTypes';
 import {
 	appStart, ROOT_SET_USERNAME, ROOT_INSIDE, ROOT_LOADING, ROOT_OUTSIDE
 } from '../actions/app';
-import { serverFinishAdd, selectServerRequest } from '../actions/server';
+import { serverFinishAdd, selectServerRequest, serverRequest } from '../actions/server';
 import {
 	loginFailure, loginSuccess, setUser, logout
 } from '../actions/login';
@@ -33,6 +33,7 @@ import { inquiryRequest, inquiryReset } from '../ee/omnichannel/actions/inquiry'
 import { isOmnichannelStatusAvailable } from '../ee/omnichannel/lib';
 import { E2E_REFRESH_MESSAGES_KEY } from '../lib/encryption/constants';
 import Navigation from '../lib/Navigation';
+import { SERVER } from '../constants';
 
 const getServer = state => state.server.server;
 const loginWithPasswordCall = args => RocketChat.loginWithPassword(args);
@@ -59,7 +60,7 @@ const handleLoginRequest = function* handleLoginRequest({ credentials, logoutOnE
 			// Saves username on server history
 			const serversDB = database.servers;
 			const serversHistoryCollection = serversDB.collections.get('servers_history');
-			yield serversDB.action(async() => {
+			yield serversDB.action(async () => {
 				try {
 					const serversHistory = await serversHistoryCollection.query(Q.where('url', server)).fetch();
 					if (serversHistory?.length) {
@@ -133,7 +134,7 @@ const fetchRooms = function* fetchRooms({ server }) {
 			// We need to reset roomsUpdatedAt to request all rooms again
 			// and save their respective E2EKeys to decrypt all pending messages and lastMessage
 			// that are already inserted on local database by other app version
-			yield serversDB.action(async() => {
+			yield serversDB.action(async () => {
 				await serverRecord.update((s) => {
 					s.roomsUpdatedAt = null;
 				});
@@ -184,7 +185,7 @@ const handleLoginSuccess = function* handleLoginSuccess({ user }) {
 			showMessageInMainThread: user.showMessageInMainThread,
 			avatarETag: user.avatarETag
 		};
-		yield serversDB.action(async() => {
+		yield serversDB.action(async () => {
 			try {
 				const userRecord = await usersCollection.find(user.id);
 				u.loginEmailPassword = userRecord?.loginEmailPassword;
@@ -200,8 +201,8 @@ const handleLoginSuccess = function* handleLoginSuccess({ user }) {
 			}
 		});
 
-		yield UserPreferences.setStringAsync(`${ RocketChat.TOKEN_KEY }-${ server }`, user.id);
-		yield UserPreferences.setStringAsync(`${ RocketChat.TOKEN_KEY }-${ user.id }`, user.token);
+		yield UserPreferences.setStringAsync(`${RocketChat.TOKEN_KEY}-${server}`, user.id);
+		yield UserPreferences.setStringAsync(`${RocketChat.TOKEN_KEY}-${user.id}`, user.token);
 		yield put(setUser(user));
 		EventEmitter.emit('connected');
 
@@ -236,37 +237,38 @@ const handleLogout = function* handleLogout({ forcedByServer }) {
 	if (server) {
 		try {
 			yield call(logoutCall, { server });
-
 			// if the user was logged out by the server
-			if (forcedByServer) {
-				yield put(appStart({ root: ROOT_OUTSIDE }));
-				showErrorAlert(I18n.t('Logged_out_by_server'), I18n.t('Oops'));
-				yield delay(300);
-				Navigation.navigate('NewServerView');
-				yield delay(300);
-				EventEmitter.emit('NewServer', { server });
-			} else {
-				const serversDB = database.servers;
-				// all servers
-				const serversCollection = serversDB.collections.get('servers');
-				const servers = yield serversCollection.query().fetch();
+			// if (forcedByServer) {
+			// 	yield put(appStart({ root: ROOT_OUTSIDE }));
+			// 	showErrorAlert(I18n.t('Logged_out_by_server'), I18n.t('Oops'));
+			// 	yield delay(300);
+			// 	Navigation.navigate('NewServerView');
+			// 	yield delay(300);
+			// 	EventEmitter.emit('NewServer', { server });
+			// } else {
+			const serversDB = database.servers;
+			// all servers
+			const serversCollection = serversDB.collections.get('servers');
+			const servers = yield serversCollection.query().fetch();
 
-				// see if there're other logged in servers and selects first one
-				if (servers.length > 0) {
-					for (let i = 0; i < servers.length; i += 1) {
-						const newServer = servers[i].id;
-						const token = yield UserPreferences.getStringAsync(`${ RocketChat.TOKEN_KEY }-${ newServer }`);
-						if (token) {
-							yield put(selectServerRequest(newServer));
-							return;
-						}
+			// see if there're other logged in servers and selects first one
+			if (servers.length > 0) {
+				for (let i = 0; i < servers.length; i += 1) {
+					const newServer = servers[i].id;
+					const token = yield UserPreferences.getStringAsync(`${RocketChat.TOKEN_KEY}-${newServer}`);
+					if (token) {
+						yield put(selectServerRequest(newServer));
+						return;
 					}
 				}
-				// if there's no servers, go outside
-				yield put(appStart({ root: ROOT_OUTSIDE }));
 			}
+			// if there's no servers, go outside
+			yield put(serverRequest(SERVER));
+			// yield put(appStart({ root: ROOT_OUTSIDE }));
+			// }
 		} catch (e) {
-			yield put(appStart({ root: ROOT_OUTSIDE }));
+			// yield put(appStart({ root: ROOT_OUTSIDE }));
+			yield put(serverRequest(SERVER));
 			log(e);
 		}
 	}

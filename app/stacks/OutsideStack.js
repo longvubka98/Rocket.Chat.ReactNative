@@ -18,6 +18,7 @@ import RegisterView from '../views/RegisterView';
 import LegalView from '../views/LegalView';
 import AuthenticationWebView from '../views/AuthenticationWebView';
 import { ROOT_OUTSIDE } from '../actions/app';
+import LoginInternalView from '../views/LoginInternalView';
 
 // Outside
 const Outside = createStackNavigator();
@@ -86,7 +87,7 @@ const OutsideStackModal = () => {
 		<OutsideModal.Navigator mode='modal' screenOptions={{ ...defaultHeader, ...themedHeader(theme), ...ModalAnimation }}>
 			<OutsideModal.Screen
 				name='OutsideStack'
-				component={OutsideStack}
+				component={LoginInternalView}
 				options={{ headerShown: false }}
 			/>
 			<OutsideModal.Screen

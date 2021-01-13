@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import SearchBar from './SearchBar';
 import Sort from './Sort';
 import Encryption from './Encryption';
 
@@ -9,6 +10,10 @@ import OmnichannelStatus from '../../../ee/omnichannel/containers/OmnichannelSta
 const ListHeader = React.memo(({
 	searching,
 	sortBy,
+	onChangeSearchText,
+	onCancelSearchPress,
+	onSearchFocus,
+	inputRef,
 	toggleSort,
 	goEncryption,
 	goQueue,
@@ -18,9 +23,16 @@ const ListHeader = React.memo(({
 	user
 }) => (
 	<>
-		<Encryption searching={searching} goEncryption={goEncryption} encryptionBanner={encryptionBanner} />
+		<SearchBar
+			inputRef={inputRef}
+			searching={searching}
+			onChangeSearchText={onChangeSearchText}
+			onCancelSearchPress={onCancelSearchPress}
+			onSearchFocus={onSearchFocus}
+		/>
+		{/* <Encryption searching={searching} goEncryption={goEncryption} encryptionBanner={encryptionBanner} /> */}
 		<Sort searching={searching} sortBy={sortBy} toggleSort={toggleSort} />
-		<OmnichannelStatus searching={searching} goQueue={goQueue} inquiryEnabled={inquiryEnabled} queueSize={queueSize} user={user} />
+		{/* <OmnichannelStatus searching={searching} goQueue={goQueue} inquiryEnabled={inquiryEnabled} queueSize={queueSize} user={user} /> */}
 	</>
 ));
 

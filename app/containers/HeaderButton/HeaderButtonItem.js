@@ -36,7 +36,7 @@ const Item = ({
 		<>
 			{
 				iconName
-					? <CustomIcon name={iconName} size={24} color={themes[theme].headerTintColor} />
+					? <CustomIcon name={iconName} size={24} color={themes[theme].tintColor} />
 					: <Text style={[styles.title, { color: themes[theme].headerTintColor }]}>{title}</Text>
 			}
 			{badge ? badge() : null}
